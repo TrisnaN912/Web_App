@@ -58,18 +58,48 @@ namespace DTSMCC_Web_App.Controllers
             return View();
         }
 
-        // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EmployeeId,Name,Email")] Employee employee)
+        public IActionResult Create(Employee employee)
         {
-            string query = "insert into (EmployeeId, Name, Email) values (@EmployeeId, @Name, @Id)";
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
+
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                try
+                {
+                    sqlCommand.CommandText =
+                        "INSERT INTO Employee " +
+                        "(EmployeeId, Name, Email) " +
+                        $"VALUES ({employee.EmployeeId},'{employee.Name}','{employee.Email}')";
+
+                    sqlCommand.ExecuteNonQuery();
+                    sqlTransaction.Commit();
+
+                    Console.WriteLine($"Data berhasil diisi");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                return View();
+
+            }
+        }
+
+        public IActionResult Edit(int Id)
+        {
+            string query = $"select * from Employee where EmployeeId = {Id}";
 
             sqlConnection = new SqlConnection(connectionString);
             SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            List<Employee> Employee = new List<Employee>();
+            Employee employee = new Employee();
 
             try
             {
@@ -80,35 +110,65 @@ namespace DTSMCC_Web_App.Controllers
                     {
                         while (sqlDataReader.Read())
                         {
-                            Employee employee1 = new Employee();
                             employee.EmployeeId = Convert.ToInt32(sqlDataReader[0]);
                             employee.Name = sqlDataReader[1].ToString();
                             employee.Email = sqlDataReader[2].ToString();
-                            Employee.Add(employee);
-
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No Data Rows");
                     }
                     sqlDataReader.Close();
                 }
-
                 sqlConnection.Close();
             }
             catch (Exception ex)
             {
-
-                Console.WriteLine(ex.InnerException);
+                Console.WriteLine(ex.Message);
             }
-            return View(employee);
+            return View();
+        }
+        //POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Employee employee)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
+
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                try
+                {
+                    sqlCommand.CommandText =
+                        "update Employee SET " +
+                        $"Name = '{employee.Name}', " +
+                        $"Email = '{employee.Email}'" +
+                        $"where EmployeeId = '{employee.EmployeeId}'";
+
+
+                    sqlCommand.ExecuteNonQuery();
+                    sqlTransaction.Commit();
+                    Console.WriteLine($"Data berhasil diedit!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return View(employee);
+            }
         }
 
-        public IActionResult Delete()
+        public IActionResult Delete(int Id)
         {
-            string query = "delete from Employee where EmployeeId = @EmployeeId";
-
+            string query = $"select * from Employee where EmployeeId = {Id}";
             sqlConnection = new SqlConnection(connectionString);
             SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            List<Employee> Employee = new List<Employee>();
-
+            Employee employee = new Employee();
             try
             {
                 sqlConnection.Open();
@@ -118,24 +178,52 @@ namespace DTSMCC_Web_App.Controllers
                     {
                         while (sqlDataReader.Read())
                         {
-                            Employee employee = new Employee();
                             employee.EmployeeId = Convert.ToInt32(sqlDataReader[0]);
-                            Employee.Add(employee);
-
+                            employee.Name = sqlDataReader[1].ToString();
+                            employee.Email = sqlDataReader[2].ToString();
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No Data Rows");
                     }
                     sqlDataReader.Close();
                 }
-
                 sqlConnection.Close();
             }
             catch (Exception ex)
             {
-
-                Console.WriteLine(ex.InnerException);
+                Console.WriteLine(ex.Message);
             }
+            return View(employee);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(Employee employee)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
 
-            return View(Employee);
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                try
+                {
+                    sqlCommand.CommandText =
+                        "DELETE FROM Employee " +
+                        $"WHERE EmployeeId = {employee.EmployeeId}";
+                    sqlCommand.ExecuteNonQuery();
+                    sqlTransaction.Commit();
+                    Console.WriteLine($"Data berhasil dihapus!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            return View();
         }
 
     }

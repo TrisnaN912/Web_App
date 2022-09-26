@@ -51,7 +51,7 @@ namespace DTSMCC_Web_App
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Employee}/{action=Index}/{id?}");
+                    pattern: "{controller=Employee}/{action=Index}/{Id?}");
                 endpoints.MapRazorPages();
             });
         }
